@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 
 // Import namespaces
+using Microsoft.CognitiveServices.Speech;
+using Microsoft.CognitiveServices.Speech.Audio;
 
 
 namespace speaking_clock
@@ -21,12 +23,17 @@ namespace speaking_clock
                 string cogSvcRegion = configuration["CognitiveServiceRegion"];
 
                 // Configure speech service
+                speechConfig = SpeechConfig.FromSubscription(cogSvcKey, cogSvcRegion);
+                Console.WriteLine("Ready to use speech service in " + speechConfig.Region);
+
+                // Configure voice
+                speechConfig.SpeechSynthesisVoiceName = "en-US-AriaNeural";
 
 
                 // Get spoken input
                 string command = "";
                 command = await TranscribeCommand();
-                if (command.ToLower()=="what time is it?")
+                if (command.ToLower() == "what time is it?")
                 {
                     await TellTime();
                 }
@@ -41,11 +48,31 @@ namespace speaking_clock
         static async Task<string> TranscribeCommand()
         {
             string command = "";
-            
+
             // Configure speech recognition
+            using AudioConfig audioConfig = AudioConfig.FromDefaultMicrophoneInput();
+            using SpeechRecognizer speechRecognizer = new SpeechRecognizer(speechConfig, audioConfig);
+            Console.WriteLine("Speak now...");
 
 
             // Process speech input
+            SpeechRecognitionResult speech = await speechRecognizer.RecognizeOnceAsync();
+             Console.WriteLine("Has dicho: ", speech);
+            if (speech.Reason == ResultReason.RecognizedSpeech)
+            {
+                command = speech.Text;
+                Console.WriteLine(command);
+            }
+            else
+            {
+                Console.WriteLine(speech.Reason);
+                if (speech.Reason == ResultReason.Canceled)
+                {
+                    var cancellation = CancellationDetails.FromResult(speech);
+                    Console.WriteLine(cancellation.Reason);
+                    Console.WriteLine(cancellation.ErrorDetails);
+                }
+            }
 
 
             // Return the command
@@ -56,7 +83,7 @@ namespace speaking_clock
         {
             var now = DateTime.Now;
             string responseText = "The time is " + now.Hour.ToString() + ":" + now.Minute.ToString("D2");
-                        
+
             // Configure speech synthesis
 
 

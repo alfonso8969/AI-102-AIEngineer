@@ -3,6 +3,7 @@ from datetime import datetime
 import os
 
 # Import namespaces
+import azure.cognitiveservices.speech as speech_sdk
 
 
 def main():
@@ -14,8 +15,10 @@ def main():
         cog_key = os.getenv('COG_SERVICE_KEY')
         cog_region = os.getenv('COG_SERVICE_REGION')
 
+
         # Configure speech service
-        
+        speech_config = speech_sdk.SpeechConfig(cog_key, cog_region)
+        print('Ready to use speech service in:', speech_config.region)
 
         # Get spoken input
         command = TranscribeCommand()
