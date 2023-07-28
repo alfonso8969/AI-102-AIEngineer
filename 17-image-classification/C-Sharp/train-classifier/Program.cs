@@ -7,15 +7,12 @@ using Microsoft.Azure.CognitiveServices.Vision.CustomVision.Training;
 using Microsoft.Azure.CognitiveServices.Vision.CustomVision.Training.Models;
 
 
-namespace train_classifier
-{
-    class Program
-    {
+namespace train_classifier {
+    class Program {
         static CustomVisionTrainingClient training_client;
         static Project custom_vision_project;
 
-        static void Main(string[] args)
-        {
+        static void Main(string[] args) {
             // Get Configuration Settings
             IConfigurationBuilder builder = new ConfigurationBuilder().AddJsonFile("appsettings.json");
             IConfigurationRoot configuration = builder.Build();
@@ -23,11 +20,9 @@ namespace train_classifier
             string training_key = configuration["TrainingKey"];
             Guid project_id = Guid.Parse(configuration["ProjectID"]);
 
-            try
-            {
+            try {
                 // Authenticate a client for the training API
-                training_client = new CustomVisionTrainingClient(new Microsoft.Azure.CognitiveServices.Vision.CustomVision.Training.ApiKeyServiceClientCredentials(training_key))
-                {
+                training_client = new CustomVisionTrainingClient(new Microsoft.Azure.CognitiveServices.Vision.CustomVision.Training.ApiKeyServiceClientCredentials(training_key)) {
                     Endpoint = training_endpoint
                 };
 
@@ -36,30 +31,24 @@ namespace train_classifier
 
                 // Upload and tag images
                 Upload_Images("more-training-images");
-                
+
                 // Retrain the model
                 Train_Model();
-            }
-            catch(Exception ex)
-            {
+            } catch (Exception ex) {
                 Console.WriteLine("Error: " + ex.Message);
             }
 
         }
 
-        static void Upload_Images(string root_folder)
-        {
+        static void Upload_Images(string root_folder) {
             Console.WriteLine("Uploading images...");
             IList<Tag> tags = training_client.GetTags(custom_vision_project.Id);
-            foreach(var tag in tags)
-            {
+            foreach (var tag in tags) {
                 Console.Write(tag.Name);
                 String[] images = Directory.GetFiles(Path.Combine(root_folder, tag.Name));
-                foreach(var image in images)
-                {
+                foreach (var image in images) {
                     Console.Write(".");
-                    using (var stream = new MemoryStream(File.ReadAllBytes(image)))
-                    {
+                    using (var stream = new MemoryStream(File.ReadAllBytes(image))) {
                         training_client.CreateImagesFromData(custom_vision_project.Id, stream, new List<Guid>() { tag.Id });
                     }
                 }
@@ -68,15 +57,13 @@ namespace train_classifier
             }
         }
 
-        static void Train_Model()
-        {
+        static void Train_Model() {
             // Now there are images with tags start training the project
             Console.Write("Training.");
             var iteration = training_client.TrainProject(custom_vision_project.Id);
 
             // The returned iteration will be in progress, and can be queried periodically to see when it has completed
-            while (iteration.Status == "Training")
-            {
+            while (iteration.Status == "Training") {
                 Console.Write(".");
                 Thread.Sleep(5000);
 

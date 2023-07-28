@@ -47,21 +47,20 @@ def AnalyzeImage(image_file):
 
     # Specify features to be retrieved
     features: list[VisualFeatureTypes] = [VisualFeatureTypes.description,
-                VisualFeatureTypes.tags,
-                VisualFeatureTypes.categories,
-                VisualFeatureTypes.brands,
-                VisualFeatureTypes.objects,
-                VisualFeatureTypes.adult]
-
+                                          VisualFeatureTypes.tags,
+                                          VisualFeatureTypes.categories,
+                                          VisualFeatureTypes.brands,
+                                          VisualFeatureTypes.objects,
+                                          VisualFeatureTypes.adult]
 
     # Get image analysis
     with open(image_file, mode="rb") as image_data:
-    analysis = cv_client.analyze_image_in_stream(image_data, features)
+        analysis = cv_client.analyze_image_in_stream(image_data, features)
 
-    # Get image description
-    for caption in analysis.description.captions:
-        print("Description: '{}' (confidence: {:.2f}%)".format(
-            caption.text, caption.confidence * 100))
+        # Get image description
+        for caption in analysis.description.captions:
+            print("Description: '{}' (confidence: {:.2f}%)".format(
+                caption.text, caption.confidence * 100))
 
 
 def GetThumbnail(image_file):
